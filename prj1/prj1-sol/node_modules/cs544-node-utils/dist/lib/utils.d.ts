@@ -1,0 +1,8 @@
+import { Errors } from 'cs544-js-utils';
+type Result<T> = Errors.Result<T>;
+export declare function readJson(path: string): Promise<Result<any>>;
+export declare function cwdPath(path: string): string;
+export declare function scriptName(): string;
+export declare function abort(msg: string, ...args: any[]): never;
+export {};
+//# sourceMappingURL=utils.d.ts.map

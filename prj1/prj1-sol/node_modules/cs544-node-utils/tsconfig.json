@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "rootDir": "src/",
+    "outDir": "./dist",
+    "allowJs": true,
+    "module": "es2020",
+    "moduleResolution": "node",
+    "lib": [
+      "es2022"
+    ],
+    "baseUrl": ".",
+    "target": "esnext",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": true,
+    "pretty": false,
+    "noImplicitAny": true,
+    "declaration": true,
+    "declarationMap": true,
+  },
+  "include": [
+    "src/"
+  ]
+}
