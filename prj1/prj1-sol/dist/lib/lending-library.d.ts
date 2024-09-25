@@ -64,6 +64,5 @@ export declare class LendingLibrary {
     returnBook(req: Record<string, any>): Errors.Result<void>;
 }
 export {};
-/********************** Domain Utility Functions ***********************/
 /********************* General Utility Functions ***********************/
 //# sourceMappingURL=lending-library.d.ts.map

@@ -68,6 +68,9 @@ export class LendingLibrary {
    */
   addBook(req: Record<string, any>): Errors.Result<XBook> {
     //TODO
+    if(!verifyType(req)){
+	return Errors.errResult('BAD_TYPE');
+	}
     return Errors.errResult('TODO');  //placeholder
   }
 
@@ -117,6 +120,19 @@ export class LendingLibrary {
 
 
 //TODO: add domain-specific utility functions or classes.
+
+//verifyType, veryfyLength(nonempty), verifyMatch
+
+function verifyType(req: Record<string, any>): boolean{
+    if(typeof req.title !== "string"){ return false;}
+    if(typeof req.authors !== "object"){return false;}
+    if(typeof req.isbn !== "string"){return false;}
+    if(typeof req.pages !== "number"){return false;}
+    if(typeof req.year !== "number"){return false;}
+    if(typeof req.publisher !== "string"){return false;}
+    //if(typeof req.nCopies !== "number" || nCopies !== undefined)
+    return true;
+}
 
 /********************* General Utility Functions ***********************/
 

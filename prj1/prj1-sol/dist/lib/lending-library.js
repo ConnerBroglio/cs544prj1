@@ -26,6 +26,9 @@ export class LendingLibrary {
      */
     addBook(req) {
         //TODO
+        if (!verifyType(req)) {
+            return errResult('BAD_TYPE');
+        }
         return Errors.errResult('TODO'); //placeholder
     }
     /** Return all books matching (case-insensitive) all "words" in
@@ -66,6 +69,29 @@ export class LendingLibrary {
 }
 /********************** Domain Utility Functions ***********************/
 //TODO: add domain-specific utility functions or classes.
+//verifyType, veryfyLength(nonempty), verifyMatch
+function verifyType(req) {
+    if (typeof req.title !== "string") {
+        return false;
+    }
+    if (typeof req.authors !== "object") {
+        return false;
+    }
+    if (typeof req.isbn !== "string") {
+        return false;
+    }
+    if (typeof req.pages !== "number") {
+        return false;
+    }
+    if (typeof req.year !== "number") {
+        return false;
+    }
+    if (typeof req.publisher !== "string") {
+        return false;
+    }
+    //if(typeof req.nCopies !== "number" || nCopies !== undefined)
+    return true;
+}
 /********************* General Utility Functions ***********************/
 //TODO: add general utility functions or classes.
 //# sourceMappingURL=lending-library.js.map
