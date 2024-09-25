@@ -122,9 +122,12 @@ export class LendingLibrary {
 
 //TODO: add domain-specific utility functions or classes.
 
+//type check book instances
 function verifyType(req: Record<string, any>): boolean{
     if(typeof req.title !== "string" || !req.title){ return false;}
     if(typeof req.authors !== "object" || !req.authors){return false;}
+
+    //if authors array is empty
     if(req.authors.length <= 0) {return false;}
     for(let author in req.authors){
     	 if(typeof req.authors[author] !== "string" || !req.authors[author]){return false;}
@@ -137,6 +140,7 @@ function verifyType(req: Record<string, any>): boolean{
     return true;
 }
 
+//check if two books have all the same info
 //function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): boolean{}
 
 /********************* General Utility Functions ***********************/
