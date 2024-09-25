@@ -125,7 +125,7 @@ export class LendingLibrary {
 function verifyType(req: Record<string, any>): boolean{
     if(typeof req.title !== "string" || !req.title){ return false;}
     if(typeof req.authors !== "object" || !req.authors){return false;}
-    
+    if(req.authors.length <= 0) {return false;}
     for(let author in req.authors){
     	 if(typeof req.authors[author] !== "string" || !req.authors[author]){return false;}
     }
@@ -133,7 +133,7 @@ function verifyType(req: Record<string, any>): boolean{
     if(typeof req.pages !== "number" || req.pages <= 0){return false;}
     if(typeof req.year !== "number" || req.year <= 0){return false;}
     if(typeof req.publisher !== "string" || !req.publisher){return false;}
-    //if(typeof req.nCopies !== "number" && req.nCopies){return false;}
+    //if(typeof req.nCopies !== "number"){return false;}
     return true;
 }
 
