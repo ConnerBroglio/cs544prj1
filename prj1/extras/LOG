@@ -1,0 +1,265 @@
+# show usage message
+$ ./dist/index.js 
+usage: index.js JSON_PATH...
+
+# enter program; displays initial help message
+$ ./dist/index.js ~/cs544/data/books.json 
+  help
+  addBook PARAM=VALUE...
+  findBooks PARAM=VALUE...
+  checkoutBook PARAM=VALUE...
+  returnBook PARAM=VALUE...
+
+# shows parameters needed for addBook
+# note that main program outputs errors as
+# value of options.code, the message, followed by other options (if any)
+>> addBook
+MISSING: property title is required; widget=title
+MISSING: property authors is required; widget=authors
+MISSING: property isbn is required; widget=isbn
+MISSING: property pages is required; widget=pages
+MISSING: property year is required; widget=year
+MISSING: property publisher is required; widget=publisher
+
+# attempt to add book, authors must be within [ ]
+>> addBook title="Programming Rust: Fast, Safe Systems Development" authors="Jim Blandy, Jason Orendorff, Leonora F. S. Tindall", isbn="149-205-259-0" pages=735 year=2021 publisher="O'Reilly"
+BAD_TYPE: authors must have type string[]; widget=authors
+
+# try again but year must be numeric
+>> addBook title="Programming Rust: Fast, Safe Systems Development" authors="[Jim Blandy, Jason Orendorff, Leonora F. S. Tindall]", isbn="149-205-259-0" pages=735 year="July 20, 2021" publisher="O'Reilly"
+BAD_TYPE: property year must be numeric; widget=year
+
+# finally succeed; note # of copies defaulted to 1
+>> addBook title="Programming Rust: Fast, Safe Systems Development" authors="[Jim Blandy, Jason Orendorff, Leonora F. S. Tindall]", isbn="149-205-259-0" pages=735 year="2021" publisher="O'Reilly"
+{
+  "title": "Programming Rust: Fast, Safe Systems Development",
+  "authors": [
+    "Jim Blandy",
+    "Jason Orendorff",
+    "Leonora F. S. Tindall"
+  ],
+  "isbn": "149-205-259-0",
+  "pages": 735,
+  "year": 2021,
+  "publisher": "O'Reilly",
+  "nCopies": 1
+}
+
+# all attributes should match when attempting to add further copies
+>> addBook title="Programming Rust" authors="[Jim Blandy, Jason Orendorff, Leonora F. S. Tindall]", isbn="149-205-259-0" pages=735 year="2021" publisher="O'Reilly"
+BAD_REQ: inconsistent title data for book 149-205-259-0; widget=title
+
+# add another 2 copies; note that total # of copies is now 3.
+>> addBook title="Programming Rust: Fast, Safe Systems Development" authors="[Jim Blandy, Jason Orendorff, Leonora F. S. Tindall]", isbn="149-205-259-0" pages=735 year="2021" publisher="O'Reilly" nCopies = 2
+{
+  "title": "Programming Rust: Fast, Safe Systems Development",
+  "authors": [
+    "Jim Blandy",
+    "Jason Orendorff",
+    "Leonora F. S. Tindall"
+  ],
+  "isbn": "149-205-259-0",
+  "pages": 735,
+  "year": 2021,
+  "publisher": "O'Reilly",
+  "nCopies": 3
+}
+
+# invalid command
+>> findBook "rust blandy"
+UNKNOWN: bad command findBook
+
+# missing search parameter
+>> findBooks
+MISSING: property search is required; widget=search
+
+# no books containing rust and blundy in title/authors
+>> findBooks search="rust blundy"
+[]
+
+# successful search; note that search is case-insensitive
+>> findBooks search="rUST blandy"
+[
+  {
+    "title": "Programming Rust: Fast, Safe Systems Development",
+    "authors": [
+      "Jim Blandy",
+      "Jason Orendorff",
+      "Leonora F. S. Tindall"
+    ],
+    "isbn": "149-205-259-0",
+    "pages": 735,
+    "year": 2021,
+    "publisher": "O'Reilly",
+    "nCopies": 3
+  }
+]
+
+# look for all books containing the word "definitive" in title
+>> findBooks search="definitive"
+[
+  {
+    "title": "JavaScript: The Definitive Guide",
+    "authors": [
+      "Uecker, Koby",
+      "Chamlee, Lorena"
+    ],
+    "isbn": "021-578-548-4",
+    "pages": 421,
+    "year": 2011,
+    "publisher": "New Starch",
+    "nCopies": 2
+  },
+  {
+    "title": "JavaScript: The Definitive Guide, 7th Edition",
+    "authors": [
+      "David Flanagan"
+    ],
+    "isbn": "149-195-202-4",
+    "pages": 704,
+    "year": 2020,
+    "publisher": "O'Reilly",
+    "nCopies": 2
+  },
+  {
+    "title": "PL/SQL: The Definitive Guide",
+    "authors": [
+      "Sarabia, Sandra",
+      "Tannehill, Everett",
+      "Chamlee, Lorena"
+    ],
+    "isbn": "708-911-231-5",
+    "pages": 406,
+    "year": 2003,
+    "publisher": "New Starch",
+    "nCopies": 4
+  },
+  {
+    "title": "Python: The Definitive Guide",
+    "authors": [
+      "Arnold, Shae",
+      "Chamlee, Lorena",
+      "Weitz, Anna"
+    ],
+    "isbn": "226-586-404-5",
+    "pages": 290,
+    "year": 2014,
+    "publisher": "Pearson",
+    "nCopies": 4
+  },
+  {
+    "title": "Ruby: The Definitive Guide",
+    "authors": [
+      "Aguirre, Tia",
+      "Owens, Kameron",
+      "Velasco, Jameson"
+    ],
+    "isbn": "661-972-367-4",
+    "pages": 170,
+    "year": 2009,
+    "publisher": "Prentice-Hall",
+    "nCopies": 2
+  },
+  {
+    "title": "Scala: The Definitive Guide",
+    "authors": [
+      "Pichotta, Adriane"
+    ],
+    "isbn": "679-393-648-3",
+    "pages": 122,
+    "year": 2001,
+    "publisher": "O'Reilly",
+    "nCopies": 2
+  }
+]
+
+# search for all definitive JavaScript books
+# (I did not know that No Starch Press had this title).
+>> findBooks search="definitive javaScript"
+[
+  {
+    "title": "JavaScript: The Definitive Guide",
+    "authors": [
+      "Uecker, Koby",
+      "Chamlee, Lorena"
+    ],
+    "isbn": "021-578-548-4",
+    "pages": 421,
+    "year": 2011,
+    "publisher": "New Starch",
+    "nCopies": 2
+  },
+  {
+    "title": "JavaScript: The Definitive Guide, 7th Edition",
+    "authors": [
+      "David Flanagan"
+    ],
+    "isbn": "149-195-202-4",
+    "pages": 704,
+    "year": 2020,
+    "publisher": "O'Reilly",
+    "nCopies": 2
+  }
+]
+
+# missing attributes for checkoutBook()
+>> checkoutBook
+MISSING: property patronId is required; widget=patronId
+MISSING: property isbn is required; widget=isbn
+
+# bad isbn
+>> checkoutBook patronId=zerksis isbn=149-195-202-5
+BAD_REQ: unknown book 149-195-202-5; widget=isbn
+
+# hava jane checkout Flanagan's JS book
+>> checkoutBook patronId=jane isbn=149-195-202-4
+undefined
+
+# jane is not allowed to checkout two copies of the same book
+>> checkoutBook patronId=jane isbn=149-195-202-4
+BAD_REQ: patron jane already has book 149-195-202-4 checked out; widget=isbn
+
+# john checks out the second copy
+>> checkoutBook patronId=john isbn=149-195-202-4
+undefined
+
+# no copies of Flanagan's JS book are left in the library
+>> checkoutBook patronId=sue isbn=149-195-202-4
+BAD_REQ: no copies of book 149-195-202-4 are available for checkout; widget=isbn
+
+# note that we see that the library still *owns* 2 copies of the book
+>> findBooks search="javascript flanagan"
+[
+  {
+    "title": "JavaScript: The Definitive Guide, 7th Edition",
+    "authors": [
+      "David Flanagan"
+    ],
+    "isbn": "149-195-202-4",
+    "pages": 704,
+    "year": 2020,
+    "publisher": "O'Reilly",
+    "nCopies": 2
+  }
+]
+
+
+# john returns his copy
+>> returnBook patronId=john isbn=149-195-202-4
+undefined
+
+# john no longer has the book, so he cannot return it again
+>> returnBook patronId=john isbn=149-195-202-4
+BAD_REQ: no checkout of book 149-195-202-4 by patron john; widget=isbn
+
+# now sue can check it out
+>> checkoutBook patronId=sue isbn=149-195-202-4
+undefined
+
+# now john cannot check it out
+>> checkoutBook patronId=john isbn=149-195-202-4
+BAD_REQ: no copies of book 149-195-202-4 are available for checkout; widget=isbn
+
+# typed ^D to indicate EOF to the terminal controller.
+>>
+$
