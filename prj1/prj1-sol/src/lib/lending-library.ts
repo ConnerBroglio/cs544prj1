@@ -68,6 +68,7 @@ export class LendingLibrary {
    */
   addBook(req: Record<string, any>): Errors.Result<XBook> {
     //TODO
+    console.log(verifyType(req));
     if(!verifyType(req)){
 	return Errors.errResult('BAD_TYPE');
 	}
@@ -121,18 +122,22 @@ export class LendingLibrary {
 
 //TODO: add domain-specific utility functions or classes.
 
-//verifyType, veryfyLength(nonempty), verifyMatch
-
 function verifyType(req: Record<string, any>): boolean{
-    if(typeof req.title !== "string"){ return false;}
-    if(typeof req.authors !== "object"){return false;}
-    if(typeof req.isbn !== "string"){return false;}
-    if(typeof req.pages !== "number"){return false;}
-    if(typeof req.year !== "number"){return false;}
-    if(typeof req.publisher !== "string"){return false;}
-    //if(typeof req.nCopies !== "number" || nCopies !== undefined)
+    if(typeof req.title !== "string" || !req.title){ return false;}
+    if(typeof req.authors !== "object" || !req.authors){return false;}
+    
+    for(let author in req.authors){
+    	 if(typeof req.authors[author] !== "string" || !req.authors[author]){return false;}
+    }
+    if(typeof req.isbn !== "string" || !req.isbn){return false;}
+    if(typeof req.pages !== "number" || req.pages <= 0){return false;}
+    if(typeof req.year !== "number" || req.year <= 0){return false;}
+    if(typeof req.publisher !== "string" || !req.publisher){return false;}
+    //if(typeof req.nCopies !== "number" && req.nCopies){return false;}
     return true;
 }
+
+//function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): boolean{}
 
 /********************* General Utility Functions ***********************/
 
