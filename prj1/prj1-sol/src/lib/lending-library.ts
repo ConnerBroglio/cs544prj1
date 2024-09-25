@@ -45,9 +45,16 @@ export function makeLendingLibrary() {
 export class LendingLibrary {
 
   //TODO: declare private TS properties for instance
+  #addBooksList: Record<ISBN, XBook>;
+  #findBooksList: Record<string, ISBN[]>;
+  #checkoutList: Record<ISBN, PatronId[]>;
+  //#returnList: Record<PatronId, ISBN[]>;
   
   constructor() {
     //TODO: initialize private TS properties for instance
+    this.#addBooksList = {};
+    this.#findBooksList = {};
+    this.#checkoutList = {};
   }
 
   /** Add one-or-more copies of book represented by req to this library.
