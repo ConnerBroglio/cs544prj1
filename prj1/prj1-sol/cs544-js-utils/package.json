@@ -1,0 +1,28 @@
+{
+  "name": "cs544-js-utils",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/main.js",
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "pretest": "npm run build",
+    "test": "mocha dist/test",
+    "prepack": "npm run clean && npm run build",
+    "postpack": "shx mv *.tgz .."
+  },
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.16",
+    "chai": "^5.0.3",
+    "mocha": "^10.2.0",
+    "shx": "^0.3.4",
+    "typescript": "^5.3.3"
+  }
+}
