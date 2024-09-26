@@ -127,18 +127,10 @@ export class LendingLibrary {
    */
   checkoutBook(req: Record<string, any>) : Errors.Result<void> {
   //not thoroughly tested, logic
-    if(typeof req.patronId === 'undefined' || req.patronId === null){
-      return Errors.errResult('Missing patronId', 'MISSING', 'patronId');
-    }
-    if(typeof req.isbn === 'undefined' || req.isbn === null) {
-      return Errors.errResult('Missing isbn', 'MISSING', 'isbn');
-    }
-    if(typeof req.patronId !== 'string'){
-      return Errors.errResult('patronId is not a string', 'BAD_TYPE', 'patronId');
-    }
-    if(typeof req.isbn !== 'string'){
-      return Errors.errResult('isbn is not a string', 'BAD_TYPE', 'isbn');
-    }
+    if(typeof req.patronId === 'undefined' || req.patronId === null){return Errors.errResult('Missing patronId', 'MISSING', 'patronId');}
+    if(typeof req.isbn === 'undefined' || req.isbn === null) {return Errors.errResult('Missing isbn', 'MISSING', 'isbn');}
+    if(typeof req.patronId !== 'string'){return Errors.errResult('patronId is not a string', 'BAD_TYPE', 'patronId');}
+    if(typeof req.isbn !== 'string'){return Errors.errResult('isbn is not a string', 'BAD_TYPE', 'isbn');}
 
    //business rule violations - check if book exists in library
    const book = this.#addBooksList[req.isbn];
@@ -148,10 +140,7 @@ export class LendingLibrary {
   }
 
    //check if there are copies available
-   if(book.nCopies <= 0){
-    //console.log("no copies");
-    return Errors.errResult('No copies are available for checkout', 'BAD_REQ', 'isbn'); 
-  }
+   if(book.nCopies <= 0){return Errors.errResult('No copies are available for checkout', 'BAD_REQ', 'isbn');} //console.log("no copies");
 
    //should check if someone already checked out
    const checkedOutBooks= this.#checkoutList[req.patronId] || [];
@@ -161,7 +150,7 @@ export class LendingLibrary {
    book.nCopies =-1;
    this.#checkoutList[req.patronId] = [...checkedOutBooks, req.isbn];       //supposed to merge to patron’s checkoutList
    this.#returnList[req.isbn] = this.#returnList[req.isbn] || [];
-   this.#returnList[req.isbn].push(req.patronId);                           //track who owns book 
+   this.#returnList[req.isbn].push(req.patronId);                           //track who owns book
   
    return Errors.okResult<void>(undefined);
   }
@@ -174,10 +163,32 @@ export class LendingLibrary {
    *    BAD_REQ error on business rule violation.
    */
   returnBook(req: Record<string, any>) : Errors.Result<void> {
-    //TODO 
-    return Errors.errResult('TODO');  //placeholder
+    if(typeof req.patronId === 'undefined' || req.patronId === null){return Errors.errResult('Missing patronId', 'MISSING', 'patronId');}
+    if(typeof req.isbn === 'undefined' || req.isbn === null) {return Errors.errResult('Missing isbn', 'MISSING', 'isbn');}
+    if(typeof req.patronId !== 'string'){return Errors.errResult('patronId is not a string', 'BAD_TYPE', 'patronId');}
+    if(typeof req.isbn !== 'string'){return Errors.errResult('isbn is not a string', 'BAD_TYPE', 'isbn');}
+    
+    //check if book is in the addBooksList?
+    const book = this.#addBooksList[req.isbn]; //gives error for nCopies with returnList
+    if (!book) {return Errors.errResult('Book not found', 'BAD_REQ', 'isbn');}
+
+    //business rule violation - book was not checked out by patron
+     const checkedOutBooks = this.#checkoutList[req.patronId] || [];
+     if(!checkedOutBooks.includes(req.isbn)){return Errors.errResult('This book was not checked out by the patron', 'BAD_REQ', 'isbn');}
+ 
+    //if book checked out, remove it from patrons checked-out list, since they're returning
+    this.#checkoutList[req.patronId] = checkedOutBooks.filter(isbn => isbn !== req.isbn);
+    
+    //update # available copies
+    book.nCopies =+ 1;
+    //if patron has no more books, empty returnList
+    if(this.#returnList[req.patronId]){
+      this.#returnList[req.patronId] = this.#returnList[req.patronId].filter(isbn => isbn != req.isbn); //filter out specific book to return by isbn
+      if(this.#returnList[req.patronId].length === 0){delete this.#returnList[req.patronId];}
+    }
+     return Errors.okResult<void>(undefined);
   }
-  
+
 }
 
 
