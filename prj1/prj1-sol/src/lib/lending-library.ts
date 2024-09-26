@@ -70,9 +70,7 @@ export class LendingLibrary {
   addBook(req: Record<string, any>): Errors.Result<XBook> {
     //TODO
     //verify types of book to add
-    if(!verifyType(req)){
-	    return Errors.errResult("incorrect type",'BAD_TYPE', );
-	  }
+    verifyType(req);
 	  
     //check list to see if book already exist
     //if it exists, verify information matches, add copies
@@ -186,10 +184,16 @@ export class LendingLibrary {
 //TODO: add domain-specific utility functions or classes.
 
 //type check book instances
-function verifyType(req: Record<string, any>): boolean{
+function verifyType(req: Record<string, any>): Errors.Result<void>{
+
+    const errors: Errors.Err[] = [];
     
-    if(typeof req.title !== "string" || !req.title){ return false;}
-    if(typeof req.authors !== "object" || !req.authors){return false;}
+    if(typeof req.title !== "string" || !req.title){
+    	errors.push(new Errors.Err("title has incorrect type",{'BAD_TYPE', title}));
+    }
+    if(typeof req.authors !== "object" || !req.authors){
+    	errors.push(new Errors.Err("authors must be in an array"
+    }
 
     //if authors array is empty
     if(req.authors.length <= 0) {return false;}
