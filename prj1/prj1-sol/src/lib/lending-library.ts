@@ -136,7 +136,8 @@ function verifyType(req: Record<string, any>): boolean{
     if(typeof req.pages !== "number" || req.pages <= 0){return false;}
     if(typeof req.year !== "number" || req.year <= 0){return false;}
     if(typeof req.publisher !== "string" || !req.publisher){return false;}
-    //if(typeof req.nCopies !== "number"){return false;}
+    if(req.nCopies !== undefined && typeof req.nCopies !== "number" || req.nCopies <= 0) {return false;}
+    //check that nCopies is and integer
     return true;
 }
 
