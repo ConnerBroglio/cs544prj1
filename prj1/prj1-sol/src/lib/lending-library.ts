@@ -70,8 +70,8 @@ export class LendingLibrary {
     //TODO
     console.log(verifyType(req));
     if(!verifyType(req)){
-	return Errors.errResult('BAD_TYPE');
-	}
+	    return Errors.errResult('BAD_TYPE');
+	  }
     return Errors.errResult('TODO');  //placeholder
   }
 
@@ -85,8 +85,19 @@ export class LendingLibrary {
    *    BAD_REQ: no words in search
    */
   findBooks(req: Record<string, any>) : Errors.Result<XBook[]> {
-    //TODO
+    //TODO, needs to be finished
+    
+    //search missing
+    const { search } = req;
+    if(search === 'undefined'){ return Errors.errResult('Search field is missing', 'MISSING', 'search')}
+    //search not a string
+    if(typeof search !== 'string'){ return Errors.errResult('Search field is not a string', 'BAD_TYPE', 'search')}
+    //no words in search
+    const words = search.match(/ \w{2,} /g);
+    if(!words) { return Errors.errResult('No words in search', 'BAD_REQ', 'search')}
+    
     return Errors.errResult('TODO');  //placeholder
+    //return Errors.OkResult<Book>(undefined);
   }
 
 
@@ -98,7 +109,31 @@ export class LendingLibrary {
    *    BAD_REQ error on business rule violation.
    */
   checkoutBook(req: Record<string, any>) : Errors.Result<void> {
-    //TODO
+    //TODO,
+    if(typeof req.patronId === 'undefined' || req.patronId === null){
+      return Errors.errResult('Missing patronId', 'MISSING', 'patronId');
+    }
+    if(typeof req.isbn === 'undefined' || req.isbn === null) {
+      return Errors.errResult('Missing isbn', 'MISSING', 'isbn');
+    }
+    if(typeof req.patronId !== 'string'){
+      return Errors.errResult('patronId is not a string', 'BAD_TYPE', 'patronId');
+    }
+    if(typeof req.isbn !== 'string'){
+      return Errors.errResult('isbn is not a string', 'BAD_TYPE', 'isbn');
+    }
+    //business rule violations - check if book exists in library
+    //const book = this.library[req.isbn];
+    //if(!book){
+    //  return Errors.errResult('Book not found', 'BAD_REQ', 'isbn'); }
+
+    //check if there are copies available
+    //if(book.nCopies <= 0){
+    //  return Errors.errResult('No copies are available for checkout', 'BAD_REQ', 'isbn'); }
+
+    //check if someone already checked out
+    //const checkedOutBooks= this.patronList
+    
     return Errors.errResult('TODO');  //placeholder
   }
 
