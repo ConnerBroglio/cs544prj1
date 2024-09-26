@@ -70,7 +70,10 @@ export class LendingLibrary {
   addBook(req: Record<string, any>): Errors.Result<XBook> {
     //TODO
     //verify types of book to add
-    verifyType(req);
+    if (!verifyType(req)){
+        console.log("wrong type");
+	return Errors.errResult("error", 'BAD_TYPE');
+    }
 	  
     //check list to see if book already exist
     //if it exists, verify information matches, add copies
@@ -184,41 +187,55 @@ export class LendingLibrary {
 //TODO: add domain-specific utility functions or classes.
 
 //type check book instances
-function verifyType(req: Record<string, any>): Errors.Result<void>{
-
-    const errors: Errors.Err[] = [];
+function verifyType(req: Record<string, any>): boolean{
     
     if(typeof req.title !== "string" || !req.title){
-    	errors.push(new Errors.Err("title has incorrect type",{'BAD_TYPE', title}));
+    	return false;
     }
     if(typeof req.authors !== "object" || !req.authors){
-    	errors.push(new Errors.Err("authors must be in an array"
+    	return false;
     }
-
     //if authors array is empty
-    if(req.authors.length <= 0) {return false;}
-    for(let author in req.authors){
-    	 if(typeof req.authors[author] !== "string" || !req.authors[author]){return false;}
+    if(req.authors.length <= 0) {
+    	return false;
     }
-    if(typeof req.isbn !== "string" || !req.isbn){return false;}
-    if(typeof req.pages !== "number" || req.pages <= 0){return false;}
-    if(typeof req.year !== "number" || req.year <= 0){return false;}
-    if(typeof req.publisher !== "string" || !req.publisher){return false;}
-    if(req.nCopies !== undefined && typeof req.nCopies !== "number" || req.nCopies <= 0) {return false;}
-    //check that nCopies, year, and, pages is an integer if it's not undefined
+    for(let author in req.authors){
+    	 if(typeof req.authors[author] !== "string" || !req.authors[author]){
+	     return false;
+	 }
+    }
+    if(typeof req.isbn !== "string" || !req.isbn){
+        return false;
+    }
+    if(typeof req.pages !== "number" || req.pages <= 0){
+        return false;
+    }
+    if(typeof req.year !== "number" || req.year <= 0){
+        return false;
+    }
+    if(typeof req.publisher !== "string" || !req.publisher){
+       return false;
+    }
+    if(req.nCopies !== undefined && (typeof req.nCopies !== "number" || req.nCopies <= 0)) {
+        return false;
+    }
     return true;
+    //check that nCopies, year, and, pages is an integer if it's not undefined
+    
 }
+
+
+
 
 //check if two books have all the same info
 function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): boolean{
-    if(book1.title !== book2.title) {return false;}
-    for(let author in book1.authors){
-    	 if(book1.authors[author] !== book2.authors[author]){return false;}
+
+    const key: Array<keyof book1> = ['title', 'authors', 'isbn', 'pages', 'year', 'publisher'];
+    for(const curr of key){
+        if(book1.field !== book2.field){
+	    return false;
+	}
     }
-    if(book1.isbn !== book2.isbn){return false;}
-    if(book1.pages !== book2.pages){return false;}
-    if(book1.year !== book2.year){return false;}
-    if(book1.publisher !== book2.publisher){return false;}
     return true;
 }
 
