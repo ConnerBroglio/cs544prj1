@@ -48,13 +48,14 @@ export class LendingLibrary {
   #addBooksList: Record<ISBN, XBook>;
   #findBooksList: Record<string, ISBN[]>;
   #checkoutList: Record<ISBN, PatronId[]>;
-  //#returnList: Record<PatronId, ISBN[]>;
+  #returnList: Record<PatronId, ISBN[]>;
   
   constructor() {
     //TODO: initialize private TS properties for instance
     this.#addBooksList = {};
     this.#findBooksList = {};
     this.#checkoutList = {};
+    this.#returnList = {};
   }
 
   /** Add one-or-more copies of book represented by req to this library.
@@ -124,7 +125,7 @@ export class LendingLibrary {
    *    BAD_REQ error on business rule violation.
    */
   checkoutBook(req: Record<string, any>) : Errors.Result<void> {
-    //TODO,
+  //not thoroughly tested, logic
     if(typeof req.patronId === 'undefined' || req.patronId === null){
       return Errors.errResult('Missing patronId', 'MISSING', 'patronId');
     }
@@ -137,19 +138,31 @@ export class LendingLibrary {
     if(typeof req.isbn !== 'string'){
       return Errors.errResult('isbn is not a string', 'BAD_TYPE', 'isbn');
     }
-    //business rule violations - check if book exists in library
-    //const book = this.library[req.isbn];
-    //if(!book){
-    //  return Errors.errResult('Book not found', 'BAD_REQ', 'isbn'); }
 
-    //check if there are copies available
-    //if(book.nCopies <= 0){
-    //  return Errors.errResult('No copies are available for checkout', 'BAD_REQ', 'isbn'); }
+   //business rule violations - check if book exists in library
+   const book = this.#addBooksList[req.isbn];
+   if(!book){
+    //console.log("book DNE");
+    return Errors.errResult('Book not found', 'BAD_REQ', 'isbn'); 
+  }
 
-    //check if someone already checked out
-    //const checkedOutBooks= this.patronList
-    
-    return Errors.errResult('TODO');  //placeholder
+   //check if there are copies available
+   if(book.nCopies <= 0){
+    //console.log("no copies");
+    return Errors.errResult('No copies are available for checkout', 'BAD_REQ', 'isbn'); 
+  }
+
+   //should check if someone already checked out
+   const checkedOutBooks= this.#checkoutList[req.patronId] || [];
+   if(checkedOutBooks.includes(req.isbn)) { return Errors.errResult('This book has been checked out', 'BAD_REQ', 'isbn'); }
+
+   //actually check out the book
+   book.nCopies =-1;
+   this.#checkoutList[req.patronId] = [...checkedOutBooks, req.isbn];       //supposed to merge to patron’s checkoutList
+   this.#returnList[req.isbn] = this.#returnList[req.isbn] || [];
+   this.#returnList[req.isbn].push(req.patronId);                           //track who owns book 
+  
+   return Errors.okResult<void>(undefined);
   }
 
   /** Set up patron req.patronId to returns book req.isbn.
