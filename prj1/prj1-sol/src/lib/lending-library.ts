@@ -68,10 +68,25 @@ export class LendingLibrary {
    */
   addBook(req: Record<string, any>): Errors.Result<XBook> {
     //TODO
-    console.log(verifyType(req));
+    //verify types of book to add
     if(!verifyType(req)){
-	    return Errors.errResult('BAD_TYPE');
+	    return Errors.errResult("incorrect type",'BAD_TYPE', );
 	  }
+	  
+    //check list to see if book already exist
+    //if it exists, verify information matches, add copies
+    if(this.#addBooksList.hasOwnProperty(req.isbn)){
+	if(verifyMatch(this.#addBooksList[req.isbn], req)){
+	    this.#addBooksList[req.isbn].nCopies += req.nCopies;
+	    console.log("this book already exists and info matches");
+	}
+    }
+    //else, add new isbn and XBook to addBooksList, and extract distinct words to add to findBooksList
+    else{
+	//this.#addBooksList;
+	console.log("new book added");
+	}
+    
     return Errors.errResult('TODO');  //placeholder
   }
 
@@ -159,6 +174,7 @@ export class LendingLibrary {
 
 //type check book instances
 function verifyType(req: Record<string, any>): boolean{
+    
     if(typeof req.title !== "string" || !req.title){ return false;}
     if(typeof req.authors !== "object" || !req.authors){return false;}
 
@@ -172,12 +188,22 @@ function verifyType(req: Record<string, any>): boolean{
     if(typeof req.year !== "number" || req.year <= 0){return false;}
     if(typeof req.publisher !== "string" || !req.publisher){return false;}
     if(req.nCopies !== undefined && typeof req.nCopies !== "number" || req.nCopies <= 0) {return false;}
-    //check that nCopies is and integer
+    //check that nCopies, year, and, pages is an integer if it's not undefined
     return true;
 }
 
 //check if two books have all the same info
-//function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): boolean{}
+function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): boolean{
+    if(book1.title !== book2.title) {return false;}
+    for(let author in book1.authors){
+    	 if(book1.authors[author] !== book2.authors[author]){return false;}
+    }
+    if(book1.isbn !== book2.isbn){return false;}
+    if(book1.pages !== book2.pages){return false;}
+    if(book1.year !== book2.year){return false;}
+    if(book1.publisher !== book2.publisher){return false;}
+    return true;
+}
 
 /********************* General Utility Functions ***********************/
 
