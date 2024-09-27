@@ -266,5 +266,5 @@ function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): bo
 //TODO: add general utility functions or classes.
 
 function extractWords(text: string): string[] {
-  return text.match(/\w{2,}/g) || [];
+  return text.toLowerCase().match(/\w{2,}/g) || [];
 }
