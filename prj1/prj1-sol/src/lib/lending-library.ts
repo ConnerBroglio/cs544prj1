@@ -68,32 +68,30 @@ export class LendingLibrary {
    *             inconsistent with the data already present.
    */
   addBook(req: Record<string, any>): Errors.Result<XBook> {
-    //TODO
-    //verify types of book to add
-    const verify = verifyType(req);
-    //console.log(verify);
-    if (verify){
-      return verify;
+    const validationError = validateAddBookReq(req);
+    if (validationError) {
+      return validationError;
     }
-	  
-    //check list to see if book already exist
-    //if it exists, verify information matches, add copies
-    const match = verifyMatch(this.#addBooksList[req.isbn], req); 
-    if(this.#addBooksList.hasOwnProperty(req.isbn)){
-	    if(!match){
-	      this.#addBooksList[req.isbn].nCopies += req.nCopies;
-	    }
-	   else{
-	      return match;
-	    }
+  
+    const isbn = req.isbn;
+    const nCopies = req.nCopies || 1;
+  
+    if (this.#addBooksList[isbn]) {
+      const existingBook = this.#addBooksList[isbn];
+      if (!isBookDataConsistent(existingBook, req)) {
+        return Errors.errResult('BAD_REQ: Inconsistent book data');
+      }
+      this.#addBooksList[isbn].nCopies += nCopies;
+    } else {
+      const newBook: XBook = {
+        ...(req as Book),
+        nCopies: nCopies
+      };
+      this.#addBooksList[isbn] = newBook;
+      indexBookWords(newBook, this.#findBooksList);
     }
-    //else, add new isbn and XBook to addBooksList, and extract distinct words to add to findBooksList
-    else{
-	    this.#addBooksList[req.isbn] = <XBook>req;
-	    //console.log("new book added");
-	  }
-    
-    return Errors.okResult(this.#addBooksList[req.isbn]);  
+  
+    return Errors.okResult(this.#addBooksList[isbn]);
   }
 
   /** Return all books matching (case-insensitive) all "words" in
@@ -107,18 +105,27 @@ export class LendingLibrary {
    */
   findBooks(req: Record<string, any>) : Errors.Result<XBook[]> {
     //TODO, needs to be finished
-    
-    //search missing
-    const { search } = req;
-    if(search === 'undefined'){ return Errors.errResult('Search field is missing', 'MISSING', 'search')}
-    //search not a string
-    if(typeof search !== 'string'){ return Errors.errResult('Search field is not a string', 'BAD_TYPE', 'search')}
-    //no words in search
-    const words = search.match(/ \w{2,} /g);
-    if(!words) { return Errors.errResult('No words in search', 'BAD_REQ', 'search')}
-    
-    return Errors.errResult('TODO');  //placeholder
-    //return Errors.OkResult<Book>(undefined);
+    if (!req.search) {
+      return Errors.errResult('Search field is missing', 'MISSING', 'search');
+    }
+    if (typeof req.search !== 'string') {
+      return Errors.errResult('Search field is not a string', 'BAD_TYPE', 'search');
+    }
+    const searchWords = extractWords(req.search);
+    if (searchWords.length === 0) {
+      return Errors.errResult('No words in search', 'BAD_REQ', 'search');
+    }
+
+    let matchingIsbns = new Set<ISBN>(this.#findBooksList[searchWords[0]] || []);
+
+    for (let i = 1; i < searchWords.length; i++) {
+      const word = searchWords[i];
+      const currentWordIsbns = new Set<ISBN>(this.#findBooksList[word] || []);
+      matchingIsbns = new Set([...matchingIsbns].filter(isbn => currentWordIsbns.has(isbn)));
+    }
+
+    const matchingBooks = Array.from(matchingIsbns).map(isbn => this.#addBooksList[isbn]).sort((a, b) => a.title.localeCompare(b.title));
+    return Errors.okResult(matchingBooks);
   }
 
 
@@ -205,30 +212,16 @@ export class LendingLibrary {
 function verifyType(req: Record<string, any>): Errors.Result<XBook> | null{
     
     //missing properties
-    if(!req.title){
-    	return Errors.errResult("title is missing", 'MISSING', 'title');
-    }
-    if(!req.authors){
-    	return Errors.errResult("author is missing", 'MISSING', 'authors');
-    } 
-    if(!req.isbn){
-    	return Errors.errResult("isbn is missing", 'MISSING', 'isbn');
-    }
-    if(!req.publisher){
-    	return Errors.errResult("publisher is missing", 'MISSING', 'publisher');
-    } 
     if(!req.pages){
       return Errors.errResult('pages is missing', 'MISSING', 'pages');
     }
     if(!req.year){
       return Errors.errResult('year is missing', 'MISSING', 'year'); 
     }
-
     //if authors array is empty
     if(req.authors.length <= 0) {
     	return Errors.errResult('authors must be array of strings', 'BAD_TYPE', 'authors');
     }
-    
     //loop through array to look at each string
     for(let author in req.authors){
     	 if(typeof req.authors[author] !== "string"){
@@ -238,30 +231,17 @@ function verifyType(req: Record<string, any>): Errors.Result<XBook> | null{
 	      return Errors.errResult('author is empty', 'MISSING', 'authors');
 	     }
     }
-
     //type check
-    if(typeof req.isbn !== "string" ){
-        return Errors.errResult('isbn has incorrect type', 'BAD_TYPE', 'isbn');
-    }
     if(typeof req.pages !== "number"){
         return Errors.errResult('pages has incorrect type', 'BAD_TYPE', 'pages');
     }
     if(typeof req.year !== "number"){
         return Errors.errResult('year has incorrect type', 'BAD_TYPE', 'year');
     }
-    if(typeof req.publisher !== "string"){
-       return Errors.errResult('publisher has incorrect type', 'BAD_TYPE', 'publisher');
-    }
     if(req.nCopies !== undefined && typeof req.nCopies !== "number" ) {
         return Errors.errResult('nCopies has incorrect type', 'BAD_TYPE', 'nCopies');
     }
-    if(typeof req.title !== "string"){
-    	return Errors.errResult("title has incorrect type", 'BAD_TYPE', 'title');
-    }
-    if(typeof req.authors !== "object"){
-    	return Errors.errResult('authors must be in an array', 'BAD_TYPE', 'authors');
-    }
-    
+
     //bad req
     if(req.pages <= 0) {
       return Errors.errResult('pages cannot be negative', 'BAD_REQ', 'pages');
@@ -283,7 +263,7 @@ function verifyType(req: Record<string, any>): Errors.Result<XBook> | null{
 
 
 
-//check if two books have all the same info
+/*//check if two books have all the same info
 function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): Errors.Result<XBook> | null{
 
    if(book1.title !== book2.title){return Errors.errResult("title doesn't match", 'BAD_REQ', 'title');}
@@ -295,9 +275,97 @@ function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): Er
    if(book1.year !== book2.year){return Errors.errResult("year doesn't match", 'BAD_REQ', 'year');}
    if(book1.publisher !== book2.publisher){return Errors.errResult("publisher doesn't match", 'BAD_REQ', 'publisher');}
    return null;
-}
+}*/
 
 /********************* General Utility Functions ***********************/
 
 //TODO: add general utility functions or classes.
+function validateAddBookReq(req: Record<string, any>): Errors.Result<XBook> | null {
+  if (!req.title) {
+    return Errors.errResult('Required field is missing', 'MISSING', 'title');
+  }
+  if(!req.publisher) {
+    return Errors.errResult('Required field is missing', 'MISSING', 'publisher');
+  }
+  if(!req.year) {
+    return Errors.errResult('Required field is missing', 'MISSING', 'year');
+  }
+  if(!req.pages) {
+    return Errors.errResult('Required field is missing', 'MISSING', 'pages');
+  }
+  if(!req.isbn) {
+    return Errors.errResult('Required field is missing', 'MISSING', 'isbn');
+  }
+  if(!req.authors) {
+    return Errors.errResult('Required field is missing', 'MISSING', 'authors');
+  }
 
+  if (typeof req.pages !== 'number') {
+    Errors.errResult('Search field is not a string', 'BAD_TYPE', 'search');
+  }
+
+  if (typeof req.year !== 'number') {
+    return Errors.errResult('Search field is not a string', 'BAD_TYPE', 'search');
+  }
+
+  if(req.year <= 0) {
+    return Errors.errResult('year cannot be negative', 'BAD_REQ', 'year');
+  }  
+  if(req.pages <= 0) {
+    return Errors.errResult('pages cannot be negative', 'BAD_REQ', 'pages');
+  }
+  if (req.nCopies !== undefined) {
+    if(typeof req.nCopies !== "number" ) {
+      return Errors.errResult('nCopies has incorrect type', 'BAD_TYPE', 'nCopies');
+    }
+    if (!Number.isInteger(req.nCopies)) {
+      return Errors.errResult('Search field is not a string', 'BAD_REQ', 'nCopies');
+    }
+    if (req.nCopies <= 0) {
+      return Errors.errResult('This book was not checked out by the patron', 'BAD_REQ', 'nCopies');
+    }
+  }
+  if(typeof req.isbn !== "string" ){
+    return Errors.errResult('isbn has incorrect type', 'BAD_TYPE', 'isbn');
+  }
+  if(typeof req.publisher !== "string"){
+    return Errors.errResult('publisher has incorrect type', 'BAD_TYPE', 'publisher');
+  } 
+  if(typeof req.title !== "string"){
+    return Errors.errResult("title has incorrect type", 'BAD_TYPE', 'title');
+  } 
+
+  if (!Array.isArray(req.authors) || req.authors.length === 0) {
+    return Errors.errResult('This book was not checked out by the patron', 'BAD_TYPE', 'authors');
+  }
+
+  for (const author of req.authors) {
+    if (typeof author !== 'string') {
+      return Errors.errResult('Search field is not a string', 'BAD_TYPE', 'authors');
+    }
+  }
+
+  return null; // Validation passed
+}
+
+function isBookDataConsistent(existingBook: XBook, req: Record<string, any>): boolean {
+  return existingBook.title === req.title &&
+         existingBook.authors.join(',') === req.authors.join(',') &&
+         existingBook.pages === req.pages &&
+         existingBook.year === req.year &&
+         existingBook.publisher === req.publisher;
+}
+
+function indexBookWords(book: XBook, wordIndex: Record<string, ISBN[]>): void {
+  const words = extractWords(book.title).concat(...book.authors.map(extractWords));
+  words.forEach(word => {
+    if (!wordIndex[word]) {
+      wordIndex[word] = [];
+    }
+    wordIndex[word].push(book.isbn);
+  });
+}
+
+function extractWords(text: string): string[] {
+  return text.toLowerCase().match(/\w{2,}/g) || [];
+}
