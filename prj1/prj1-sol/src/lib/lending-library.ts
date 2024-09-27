@@ -241,12 +241,14 @@ function verifyType(req: Record<string, any>): boolean{
 //check if two books have all the same info
 function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): boolean{
 
-    const key: Array<keyof book1> = ['title', 'authors', 'isbn', 'pages', 'year', 'publisher'];
-    for(const curr of key){
-        if(book1.field !== book2.field){
-	    return false;
-	}
-    }
+   if(book1.title !== book2.title){return false;}
+   for(let author in book1.authors){
+       if(book1.authors[author] !== book2.authors[author]){return false;}
+   }
+    if(book1.isbn !== book2.isbn){return false;}
+    if(book1.pages !== book2.pages){return false;}
+    if(book1.year !== book2.year){return false;}
+    if(book1.publisher !== book2.publisher){return false;}
     return true;
 }
 
