@@ -18,7 +18,7 @@ export default async function main(args: string[]) {
 }
 
 //change to true after completing addBook() method.
-const CHECK_INIT_LOAD = false;
+const CHECK_INIT_LOAD = true;
 
 async function go(paths: string[]) {
   assert(paths.length > 0);

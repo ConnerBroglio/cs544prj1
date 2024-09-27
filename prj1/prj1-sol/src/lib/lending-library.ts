@@ -103,18 +103,27 @@ export class LendingLibrary {
    */
   findBooks(req: Record<string, any>) : Errors.Result<XBook[]> {
     //TODO, needs to be finished
-    
-    //search missing
-    const { search } = req;
-    if(search === 'undefined'){ return Errors.errResult('Search field is missing', 'MISSING', 'search')}
-    //search not a string
-    if(typeof search !== 'string'){ return Errors.errResult('Search field is not a string', 'BAD_TYPE', 'search')}
-    //no words in search
-    const words = search.match(/ \w{2,} /g);
-    if(!words) { return Errors.errResult('No words in search', 'BAD_REQ', 'search')}
-    
-    return Errors.errResult('TODO');  //placeholder
-    //return Errors.OkResult<Book>(undefined);
+    if (!req.search) {
+      return Errors.errResult('Search field is missing', 'MISSING', 'search');
+    }
+    if (typeof req.search !== 'string') {
+      return Errors.errResult('Search field is not a string', 'BAD_TYPE', 'search');
+    }
+    const searchWords = extractWords(req.search);
+    if (searchWords.length === 0) {
+      return Errors.errResult('No words in search', 'BAD_REQ', 'search');
+    }
+
+    let matchingIsbns = new Set<ISBN>(this.#findBooksList[searchWords[0]] || []);
+
+    for (let i = 1; i < searchWords.length; i++) {
+      const word = searchWords[i];
+      const currentWordIsbns = new Set<ISBN>(this.#findBooksList[word] || []);
+      matchingIsbns = new Set([...matchingIsbns].filter(isbn => currentWordIsbns.has(isbn)));
+    }
+
+    const matchingBooks = Array.from(matchingIsbns).map(isbn => this.#addBooksList[isbn]).sort((a, b) => a.title.localeCompare(b.title));
+    return Errors.okResult(matchingBooks);
   }
 
 
@@ -256,3 +265,6 @@ function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): bo
 
 //TODO: add general utility functions or classes.
 
+function extractWords(text: string): string[] {
+  return text.match(/\w{2,}/g) || [];
+}
