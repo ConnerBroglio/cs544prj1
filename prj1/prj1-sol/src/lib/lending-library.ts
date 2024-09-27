@@ -205,57 +205,6 @@ export class LendingLibrary {
 
 //TODO: add domain-specific utility functions or classes.
 
-//type check book instances, return multiple errors?
-function verifyType(req: Record<string, any>): Errors.Result<XBook> | null{
-    
-    //missing properties
-    if(!req.pages){
-      return Errors.errResult('pages is missing', 'MISSING', 'pages');
-    }
-    if(!req.year){
-      return Errors.errResult('year is missing', 'MISSING', 'year'); 
-    }
-    //if authors array is empty
-    if(req.authors.length <= 0) {
-    	return Errors.errResult('authors must be array of strings', 'BAD_TYPE', 'authors');
-    }
-    //loop through array to look at each string
-    for(let author in req.authors){
-    	 if(typeof req.authors[author] !== "string"){
-	      return Errors.errResult('author has incorrect type', 'BAD_TYPE', 'authors');
-	     }
-       if(!req.authors[author]){
-	      return Errors.errResult('author is empty', 'MISSING', 'authors');
-	     }
-    }
-    //type check
-    if(typeof req.pages !== "number"){
-        return Errors.errResult('pages has incorrect type', 'BAD_TYPE', 'pages');
-    }
-    if(typeof req.year !== "number"){
-        return Errors.errResult('year has incorrect type', 'BAD_TYPE', 'year');
-    }
-    if(req.nCopies !== undefined && typeof req.nCopies !== "number" ) {
-        return Errors.errResult('nCopies has incorrect type', 'BAD_TYPE', 'nCopies');
-    }
-
-    //bad req
-    if(req.pages <= 0) {
-      return Errors.errResult('pages cannot be negative', 'BAD_REQ', 'pages');
-    }
-    if(req.year <= 0) {
-      return Errors.errResult('year cannot be negative', 'BAD_REQ', 'year');
-    }  
-    if(req.nCopies <= 0) {
-      return Errors.errResult('nCopies cannot be negative', 'BAD_REQ', 'nCopies');
-    }
-    if(req.nCopies != undefined){
-      if(!Number.isInteger(req.nCopies)) {
-        return Errors.errResult('nCopies must be an integer', 'BAD_REQ', 'nCopies');
-      } 
-    }
-    return null;
-}
 
 /********************* General Utility Functions ***********************/
 
@@ -324,7 +273,6 @@ function validateAddBookReq(req: Record<string, any>): Errors.Result<XBook> | nu
       return Errors.errResult('Search field is not a string', 'BAD_TYPE', 'authors');
     }
   }
-
   return null; // Validation passed
 }
 

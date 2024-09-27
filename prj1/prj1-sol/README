@@ -12,3 +12,5 @@ Emaiil:     nalleyn1@binghamton.edu
 
 Add text here as needed to document the status of your project.
 
+-issues
+Our implementation of lending-library is designed to return only one error message at time
