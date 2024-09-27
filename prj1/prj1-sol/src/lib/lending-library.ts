@@ -148,18 +148,18 @@ export class LendingLibrary {
    //check if there are copies available
    if(book.nCopies <= 0){
     return Errors.errResult('No copies are available for checkout', 'BAD_REQ', 'isbn');
-  }
+   }
 
    //should check if someone already checked out
    const checkedOutBooks= this.#checkoutList[req.patronId] || [];
    if(checkedOutBooks.includes(req.isbn)) { return Errors.errResult('This book has been checked out', 'BAD_REQ', 'isbn'); }
 
    //actually check out the book
-   book.nCopies =-1;
+   book.nCopies -= 1;
    this.#checkoutList[req.patronId] = [...checkedOutBooks, req.isbn];       //supposed to merge to patron’s checkoutList
    this.#returnList[req.isbn] = this.#returnList[req.isbn] || [];
    this.#returnList[req.isbn].push(req.patronId);                           //track who owns book
-  
+   
    return Errors.okResult<void>(undefined);
   }
 
