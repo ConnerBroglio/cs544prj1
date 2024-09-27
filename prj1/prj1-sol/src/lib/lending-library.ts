@@ -262,23 +262,6 @@ function verifyType(req: Record<string, any>): Errors.Result<XBook> | null{
     return null;
 }
 
-
-
-
-/*//check if two books have all the same info
-function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): Errors.Result<XBook> | null{
-
-   if(book1.title !== book2.title){return Errors.errResult("title doesn't match", 'BAD_REQ', 'title');}
-   for(let author in book1.authors){
-       if(book1.authors[author] !== book2.authors[author]){return Errors.errResult("authors don't match", 'BAD_REQ', 'authors');}
-   }
-   if(book1.isbn !== book2.isbn){return Errors.errResult("isbn doesn't match", 'BAD_REQ', 'isbn');}
-   if(book1.pages !== book2.pages){return Errors.errResult("page number doesn't match", 'BAD_REQ', 'pages');}
-   if(book1.year !== book2.year){return Errors.errResult("year doesn't match", 'BAD_REQ', 'year');}
-   if(book1.publisher !== book2.publisher){return Errors.errResult("publisher doesn't match", 'BAD_REQ', 'publisher');}
-   return null;
-}*/
-
 /********************* General Utility Functions ***********************/
 
 //TODO: add general utility functions or classes.
@@ -303,10 +286,10 @@ function validateAddBookReq(req: Record<string, any>): Errors.Result<XBook> | nu
   }
 
   if (typeof req.year !== 'number') {
-    return Errors.errResult('Search field is not a string', 'BAD_TYPE', 'year');
+    return Errors.errResult('Search field is not a number', 'BAD_TYPE', 'year');
   }
   if (typeof req.pages !== 'number') {
-    Errors.errResult('Search field is not a string', 'BAD_TYPE', 'pages');
+    Errors.errResult('Search field is not a number', 'BAD_TYPE', 'pages');
   }
 
   if(req.year <= 0) {
@@ -328,7 +311,7 @@ function validateAddBookReq(req: Record<string, any>): Errors.Result<XBook> | nu
       return Errors.errResult('Search field is not a string', 'BAD_REQ', 'nCopies');
     }
     if (req.nCopies <= 0) {
-      return Errors.errResult('This book was not checked out by the patron', 'BAD_REQ', 'nCopies');
+      return Errors.errResult('copies cannot be negative', 'BAD_REQ', 'nCopies');
     }
   }
   if(typeof req.isbn !== "string" ){
