@@ -151,7 +151,9 @@ export class LendingLibrary {
   }
 
    //check if there are copies available
-   if(book.nCopies <= 0){return Errors.errResult('No copies are available for checkout', 'BAD_REQ', 'isbn');} //console.log("no copies");
+   if(book.nCopies <= 0){
+    return Errors.errResult('No copies are available for checkout', 'BAD_REQ', 'isbn');
+  } //console.log("no copies");
 
    //should check if someone already checked out
    const checkedOutBooks= this.#checkoutList[req.patronId] || [];
@@ -287,25 +289,24 @@ function validateAddBookReq(req: Record<string, any>): Errors.Result<XBook> | nu
   if(!req.publisher) {
     return Errors.errResult('Required field is missing', 'MISSING', 'publisher');
   }
-  if(!req.year) {
-    return Errors.errResult('Required field is missing', 'MISSING', 'year');
-  }
-  if(!req.pages) {
-    return Errors.errResult('Required field is missing', 'MISSING', 'pages');
-  }
   if(!req.isbn) {
     return Errors.errResult('Required field is missing', 'MISSING', 'isbn');
   }
   if(!req.authors) {
     return Errors.errResult('Required field is missing', 'MISSING', 'authors');
   }
-
-  if (typeof req.pages !== 'number') {
-    Errors.errResult('Search field is not a string', 'BAD_TYPE', 'search');
+  if(!req.year) {
+    return Errors.errResult('Required field is missing', 'MISSING', 'year');
+  }
+  if(!req.pages) {
+    return Errors.errResult('Required field is missing', 'MISSING', 'pages');
   }
 
   if (typeof req.year !== 'number') {
-    return Errors.errResult('Search field is not a string', 'BAD_TYPE', 'search');
+    return Errors.errResult('Search field is not a string', 'BAD_TYPE', 'year');
+  }
+  if (typeof req.pages !== 'number') {
+    Errors.errResult('Search field is not a string', 'BAD_TYPE', 'pages');
   }
 
   if(req.year <= 0) {
@@ -314,6 +315,11 @@ function validateAddBookReq(req: Record<string, any>): Errors.Result<XBook> | nu
   if(req.pages <= 0) {
     return Errors.errResult('pages cannot be negative', 'BAD_REQ', 'pages');
   }
+  // i dont know why but even though each piece of the below code is already checked, program doesnt pass test unless its included.
+  if (!req.pages || typeof req.pages !== 'number' || req.pages <= 0) {
+    return Errors.errResult('Invalid or missing pages', 'BAD_TYPE', 'pages');
+  }
+  ////////////////////////////////////////////////////////////////////////////
   if (req.nCopies !== undefined) {
     if(typeof req.nCopies !== "number" ) {
       return Errors.errResult('nCopies has incorrect type', 'BAD_TYPE', 'nCopies');
