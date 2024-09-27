@@ -70,26 +70,30 @@ export class LendingLibrary {
   addBook(req: Record<string, any>): Errors.Result<XBook> {
     //TODO
     //verify types of book to add
-    if (!verifyType(req)){
-        console.log("wrong type");
-	return Errors.errResult("error", 'BAD_TYPE');
+    const verify = verifyType(req);
+    //console.log(verify);
+    if (verify){
+      return verify;
     }
 	  
     //check list to see if book already exist
     //if it exists, verify information matches, add copies
+    const match = verifyMatch(this.#addBooksList[req.isbn], req); 
     if(this.#addBooksList.hasOwnProperty(req.isbn)){
-	if(verifyMatch(this.#addBooksList[req.isbn], req)){
-	    this.#addBooksList[req.isbn].nCopies += req.nCopies;
-	    console.log("this book already exists and info matches");
-	}
+	    if(!match){
+	      this.#addBooksList[req.isbn].nCopies += req.nCopies;
+	    }
+	   else{
+	      return match;
+	    }
     }
     //else, add new isbn and XBook to addBooksList, and extract distinct words to add to findBooksList
     else{
-	//this.#addBooksList;
-	console.log("new book added");
-	}
+	    this.#addBooksList[req.isbn] = <XBook>req;
+	    //console.log("new book added");
+	  }
     
-    return Errors.errResult('TODO');  //placeholder
+    return Errors.okResult(this.#addBooksList[req.isbn]);  
   }
 
   /** Return all books matching (case-insensitive) all "words" in
@@ -197,59 +201,100 @@ export class LendingLibrary {
 
 //TODO: add domain-specific utility functions or classes.
 
-//type check book instances
-function verifyType(req: Record<string, any>): boolean{
+//type check book instances, return multiple errors?
+function verifyType(req: Record<string, any>): Errors.Result<XBook> | null{
     
-    if(typeof req.title !== "string" || !req.title){
-    	return false;
+    //missing properties
+    if(!req.title){
+    	return Errors.errResult("title is missing", 'MISSING', 'title');
     }
-    if(typeof req.authors !== "object" || !req.authors){
-    	return false;
+    if(!req.authors){
+    	return Errors.errResult("author is missing", 'MISSING', 'authors');
+    } 
+    if(!req.isbn){
+    	return Errors.errResult("isbn is missing", 'MISSING', 'isbn');
     }
+    if(!req.publisher){
+    	return Errors.errResult("publisher is missing", 'MISSING', 'publisher');
+    } 
+    if(!req.pages){
+      return Errors.errResult('pages is missing', 'MISSING', 'pages');
+    }
+    if(!req.year){
+      return Errors.errResult('year is missing', 'MISSING', 'year'); 
+    }
+
     //if authors array is empty
     if(req.authors.length <= 0) {
-    	return false;
+    	return Errors.errResult('authors must be array of strings', 'BAD_TYPE', 'authors');
     }
-    for(let author in req.authors){
-    	 if(typeof req.authors[author] !== "string" || !req.authors[author]){
-	     return false;
-	 }
-    }
-    if(typeof req.isbn !== "string" || !req.isbn){
-        return false;
-    }
-    if(typeof req.pages !== "number" || req.pages <= 0){
-        return false;
-    }
-    if(typeof req.year !== "number" || req.year <= 0){
-        return false;
-    }
-    if(typeof req.publisher !== "string" || !req.publisher){
-       return false;
-    }
-    if(req.nCopies !== undefined && (typeof req.nCopies !== "number" || req.nCopies <= 0)) {
-        return false;
-    }
-    return true;
-    //check that nCopies, year, and, pages is an integer if it's not undefined
     
+    //loop through array to look at each string
+    for(let author in req.authors){
+    	 if(typeof req.authors[author] !== "string"){
+	      return Errors.errResult('author has incorrect type', 'BAD_TYPE', 'authors');
+	     }
+       if(!req.authors[author]){
+	      return Errors.errResult('author is empty', 'MISSING', 'authors');
+	     }
+    }
+
+    //type check
+    if(typeof req.isbn !== "string" ){
+        return Errors.errResult('isbn has incorrect type', 'BAD_TYPE', 'isbn');
+    }
+    if(typeof req.pages !== "number"){
+        return Errors.errResult('pages has incorrect type', 'BAD_TYPE', 'pages');
+    }
+    if(typeof req.year !== "number"){
+        return Errors.errResult('year has incorrect type', 'BAD_TYPE', 'year');
+    }
+    if(typeof req.publisher !== "string"){
+       return Errors.errResult('publisher has incorrect type', 'BAD_TYPE', 'publisher');
+    }
+    if(req.nCopies !== undefined && typeof req.nCopies !== "number" ) {
+        return Errors.errResult('nCopies has incorrect type', 'BAD_TYPE', 'nCopies');
+    }
+    if(typeof req.title !== "string"){
+    	return Errors.errResult("title has incorrect type", 'BAD_TYPE', 'title');
+    }
+    if(typeof req.authors !== "object"){
+    	return Errors.errResult('authors must be in an array', 'BAD_TYPE', 'authors');
+    }
+    
+    //bad req
+    if(req.pages <= 0) {
+      return Errors.errResult('pages cannot be negative', 'BAD_REQ', 'pages');
+    }
+    if(req.year <= 0) {
+      return Errors.errResult('year cannot be negative', 'BAD_REQ', 'year');
+    }  
+    if(req.nCopies <= 0) {
+      return Errors.errResult('nCopies cannot be negative', 'BAD_REQ', 'nCopies');
+    }
+    if(req.nCopies != undefined){
+      if(!Number.isInteger(req.nCopies)) {
+        return Errors.errResult('nCopies must be an integer', 'BAD_REQ', 'nCopies');
+      } 
+    }
+    return null;
 }
 
 
 
 
 //check if two books have all the same info
-function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): boolean{
+function verifyMatch(book1: Record<string, any>, book2: Record<string, any>): Errors.Result<XBook> | null{
 
-   if(book1.title !== book2.title){return false;}
+   if(book1.title !== book2.title){return Errors.errResult("title doesn't match", 'BAD_REQ', 'title');}
    for(let author in book1.authors){
-       if(book1.authors[author] !== book2.authors[author]){return false;}
+       if(book1.authors[author] !== book2.authors[author]){return Errors.errResult("authors don't match", 'BAD_REQ', 'authors');}
    }
-    if(book1.isbn !== book2.isbn){return false;}
-    if(book1.pages !== book2.pages){return false;}
-    if(book1.year !== book2.year){return false;}
-    if(book1.publisher !== book2.publisher){return false;}
-    return true;
+   if(book1.isbn !== book2.isbn){return Errors.errResult("isbn doesn't match", 'BAD_REQ', 'isbn');}
+   if(book1.pages !== book2.pages){return Errors.errResult("page number doesn't match", 'BAD_REQ', 'pages');}
+   if(book1.year !== book2.year){return Errors.errResult("year doesn't match", 'BAD_REQ', 'year');}
+   if(book1.publisher !== book2.publisher){return Errors.errResult("publisher doesn't match", 'BAD_REQ', 'publisher');}
+   return null;
 }
 
 /********************* General Utility Functions ***********************/
