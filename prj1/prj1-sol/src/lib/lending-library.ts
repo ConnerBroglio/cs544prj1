@@ -104,7 +104,6 @@ export class LendingLibrary {
    *    BAD_REQ: no words in search
    */
   findBooks(req: Record<string, any>) : Errors.Result<XBook[]> {
-    //TODO, needs to be finished
     if (!req.search) {
       return Errors.errResult('Search field is missing', 'MISSING', 'search');
     }
@@ -137,7 +136,6 @@ export class LendingLibrary {
    *    BAD_REQ error on business rule violation.
    */
   checkoutBook(req: Record<string, any>) : Errors.Result<void> {
-  //not thoroughly tested, logic
     if(typeof req.patronId === 'undefined' || req.patronId === null){return Errors.errResult('Missing patronId', 'MISSING', 'patronId');}
     if(typeof req.isbn === 'undefined' || req.isbn === null) {return Errors.errResult('Missing isbn', 'MISSING', 'isbn');}
     if(typeof req.patronId !== 'string'){return Errors.errResult('patronId is not a string', 'BAD_TYPE', 'patronId');}
@@ -145,15 +143,12 @@ export class LendingLibrary {
 
    //business rule violations - check if book exists in library
    const book = this.#addBooksList[req.isbn];
-   if(!book){
-    //console.log("book DNE");
-    return Errors.errResult('Book not found', 'BAD_REQ', 'isbn'); 
-  }
-
+   if(!book){return Errors.errResult('Book not found', 'BAD_REQ', 'isbn');}
+   
    //check if there are copies available
    if(book.nCopies <= 0){
     return Errors.errResult('No copies are available for checkout', 'BAD_REQ', 'isbn');
-  } //console.log("no copies");
+  }
 
    //should check if someone already checked out
    const checkedOutBooks= this.#checkoutList[req.patronId] || [];
@@ -182,7 +177,7 @@ export class LendingLibrary {
     if(typeof req.isbn !== 'string'){return Errors.errResult('isbn is not a string', 'BAD_TYPE', 'isbn');}
     
     //check if book is in the addBooksList?
-    const book = this.#addBooksList[req.isbn]; //gives error for nCopies with returnList
+    const book = this.#addBooksList[req.isbn]; //gives error for nCopies with findbooks, nCopies DNE on type string[]
     if (!book) {return Errors.errResult('Book not found', 'BAD_REQ', 'isbn');}
 
     //business rule violation - book was not checked out by patron
