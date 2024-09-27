@@ -289,7 +289,7 @@ function validateAddBookReq(req: Record<string, any>): Errors.Result<XBook> | nu
     return Errors.errResult('Search field is not a number', 'BAD_TYPE', 'year');
   }
   if (typeof req.pages !== 'number') {
-    Errors.errResult('Search field is not a number', 'BAD_TYPE', 'pages');
+    return Errors.errResult('Search field is not a number', 'BAD_TYPE', 'pages');
   }
 
   if(req.year <= 0) {
@@ -298,11 +298,7 @@ function validateAddBookReq(req: Record<string, any>): Errors.Result<XBook> | nu
   if(req.pages <= 0) {
     return Errors.errResult('pages cannot be negative', 'BAD_REQ', 'pages');
   }
-  // i dont know why but even though each piece of the below code is already checked, program doesnt pass test unless its included.
-  if (!req.pages || typeof req.pages !== 'number' || req.pages <= 0) {
-    return Errors.errResult('Invalid or missing pages', 'BAD_TYPE', 'pages');
-  }
-  ////////////////////////////////////////////////////////////////////////////
+  
   if (req.nCopies !== undefined) {
     if(typeof req.nCopies !== "number" ) {
       return Errors.errResult('nCopies has incorrect type', 'BAD_TYPE', 'nCopies');
